@@ -5,6 +5,7 @@ services:
     restart: always
     environment:
       - PORT=8000
+      - NIKTO_VERSION=2.5.0
     build:
       context: .
       target: builder
