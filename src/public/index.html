@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Web Server Scanner</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-iYQeCzEYFbKjA/T2uDLTpkwGzCiq6soy8tYaI1GyVh/UjpbCx/TYkiZhlZB6+fzT" crossorigin="anonymous">
+  </head>
+  <body>
+    <main class="container-fluid">
+      <h3>
+        Let's scan the web
+        <small class="text-muted"> please enter a hostname...</small>
+      </h3>
+      <form class="row align-items-center">
+        <div class="col">
+          <label for="host-input" class="visually-hidden">Enter the hostname to scan:</label>
+          <input type="text" class="form-control" id="host-input" placeholder="https://example.com">
+        </div>
+        <div class="col p-3">
+          <button type="button" class="btn btn-primary" onclick="handleScanClick()">
+            <span class="spinner-border spinner-border-sm invisible scan-status-indicator" role="status" aria-hidden="true"></span>
+            <span id="scan-button-text">Start</span>
+          </button>
+          <button type="button" class="btn btn-outline-secondary" onclick="handleStopClick()">Stop</button>
+        </div>
+      </form>
+      <div class="card">
+        <div class="card-body">
+          <div class="card-text" id="event-list" style="height: 500px; overflow-y: scroll;"></div>
+          <div class="card-text">
+            <div class="spinner-grow invisible scan-status-indicator" role="status">
+              <span class="visually-hidden">Scanning...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+    <script type="text/javascript">
+      let evtSource = null;
+      
+      const eventList = document.getElementById("event-list");
+      const scanButtonText = document.getElementById("scan-button-text");
+      const scanStatusIndicators = document.querySelectorAll(".scan-status-indicator");
+
+      const appendToEventList = (textContent, className = "text-bg-light") => {
+        if (textContent) {
+          const newElement = document.createElement("p");
+          newElement.className = `${className} p-2 mb-2 fw-lighter`;
+          newElement.textContent = textContent;
+          eventList.appendChild(newElement);
+          eventList.scrollTop = eventList.scrollHeight;
+        }
+      }
+
+      const closeConnection = () => {
+        if (evtSource) evtSource.close();
+        scanButtonText.textContent = "Start";
+        scanStatusIndicators.forEach(indicator => indicator.classList.add("invisible"));
+      }
+      
+      const handleStopClick = () => {
+        closeConnection();
+        appendToEventList("Scanning has stopped!", "text-bg-warning");
+      }
+
+      const handleScanClick = () => {
+        eventList.textContent = "";
+        scanButtonText.textContent = "Scanning...";
+        scanStatusIndicators.forEach(indicator => indicator.classList.remove("invisible"));
+        
+        const host = document.getElementById("host-input").value;
+        let reconnectAttempts = 1;
+        // https://developer.mozilla.org/en-US/docs/Web/API/EventSource
+        evtSource = new EventSource(`/scan?host=${host}`);
+        evtSource.onmessage = (message) => {
+          const { type, event } = JSON.parse(message.data)
+          if (type === 'close') {
+            closeConnection();
+            appendToEventList(event, "text-bg-success");
+          } else {
+            // Sometimes more than one item is sent in the same event
+            event.split("+").forEach(item => {
+              appendToEventList(item);
+            });
+          }
+        }
+
+        evtSource.onerror = () => {
+          if (reconnectAttempts > 3) {
+            closeConnection();
+            appendToEventList("Could not connect to the server!", "bg-danger text-white");
+          } else {
+            appendToEventList(`Connection refused (attempt: ${reconnectAttempts})...`, "bg-danger text-white");
+            reconnectAttempts++;
+          }
+        }
+      }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/js/bootstrap.min.js" integrity="sha384-7VPbUDkoPSGFnVtYi0QogXtr74QeVeeIs99Qfg5YCF+TidwNdjvaKZX19NZ/e6oz" crossorigin="anonymous"></script>
+  </body>
+</html>
