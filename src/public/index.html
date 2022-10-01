@@ -12,19 +12,19 @@
         Let's scan the web
         <small class="text-muted"> please enter a hostname...</small>
       </h3>
-      <form class="row align-items-center">
+      <div class="row align-items-center">
         <div class="col">
           <label for="host-input" class="visually-hidden">Enter the hostname to scan:</label>
           <input type="text" class="form-control" id="host-input" placeholder="https://example.com">
         </div>
         <div class="col p-3">
-          <button type="button" class="btn btn-primary" onclick="handleScanClick()">
+          <button type="button" class="btn btn-primary" id="scan-button" onclick="handleScanClick()">
             <span class="spinner-border spinner-border-sm invisible scan-status-indicator" role="status" aria-hidden="true"></span>
             <span id="scan-button-text">Start</span>
           </button>
-          <button type="button" class="btn btn-outline-secondary" onclick="handleStopClick()">Stop</button>
+          <button type="button" class="btn btn-outline-secondary disabled" id="stop-button" onclick="handleStopClick()">Stop</button>
         </div>
-      </form>
+      </div>
       <div class="card">
         <div class="card-body">
           <div class="card-text" id="event-list" style="height: 500px; overflow-y: scroll;"></div>
@@ -38,11 +38,15 @@
     </main>
     <script type="text/javascript">
       let evtSource = null;
-      
+      let isScanning = false;
+
+      const hostInput = document.getElementById("host-input");
+      const scanBtn = document.getElementById("scan-button");
+      const stopBtn = document.getElementById("stop-button");
       const eventList = document.getElementById("event-list");
       const scanButtonText = document.getElementById("scan-button-text");
       const scanStatusIndicators = document.querySelectorAll(".scan-status-indicator");
-
+      
       const appendToEventList = (textContent, className = "text-bg-light") => {
         if (textContent) {
           const newElement = document.createElement("p");
@@ -55,9 +59,21 @@
 
       const closeConnection = () => {
         if (evtSource) evtSource.close();
+        isScanning = false;
+        // Resets UI to its original state
         scanButtonText.textContent = "Start";
         scanStatusIndicators.forEach(indicator => indicator.classList.add("invisible"));
+        scanBtn.classList.remove("disabled");
+        stopBtn.classList.add("disabled");
       }
+
+      hostInput.addEventListener("keypress", event => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          if (isScanning) stopBtn.click();
+          else scanBtn.click();
+        }
+      });
       
       const handleStopClick = () => {
         closeConnection();
@@ -65,24 +81,34 @@
       }
 
       const handleScanClick = () => {
-        eventList.textContent = "";
+        isScanning = true;
+        
         scanButtonText.textContent = "Scanning...";
         scanStatusIndicators.forEach(indicator => indicator.classList.remove("invisible"));
+        eventList.textContent = "";
+        scanBtn.classList.add("disabled");
+        stopBtn.classList.remove("disabled");
         
-        const host = document.getElementById("host-input").value;
+        const host = hostInput.value;
         let reconnectAttempts = 1;
         // https://developer.mozilla.org/en-US/docs/Web/API/EventSource
         evtSource = new EventSource(`/scan?host=${host}`);
         evtSource.onmessage = (message) => {
-          const { type, event } = JSON.parse(message.data)
-          if (type === 'close') {
-            closeConnection();
-            appendToEventList(event, "text-bg-success");
-          } else {
-            // Sometimes more than one item is sent in the same event
-            event.split("+").forEach(item => {
-              appendToEventList(item);
-            });
+          const { type, event } = JSON.parse(message.data);
+          switch(type) {
+            case 'done':
+              closeConnection();
+              appendToEventList(event, "text-bg-success");
+              break;
+            case 'error':
+              closeConnection();
+              appendToEventList(event, "text-bg-warning");
+              break;
+            default:
+              // Handles the 'feed' events, sometimes more than one log is sent:
+              event.split("+").forEach(item => {
+                appendToEventList(item);
+              });
           }
         }
 

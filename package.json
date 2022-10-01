@@ -1,5 +1,5 @@
 {
-  "name": "nikto-web-ui-backend",
+  "name": "nikto-web-ui",
   "version": "1.0.0",
   "description": "",
   "main": "src/server.js",
