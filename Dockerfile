@@ -26,7 +26,7 @@ USER nikto
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci
-CMD [ "node", "src/index.js" ]
+CMD [ "node", "server/index.js" ]
 EXPOSE $PORT
 
 FROM builder

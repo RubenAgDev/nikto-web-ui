@@ -9,7 +9,7 @@ services:
     build:
       context: .
       target: builder
-    command: npm run start:dev
+    command: npm run dev
     ports:
       - 8000:8000
     volumes:
