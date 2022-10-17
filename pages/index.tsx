@@ -85,7 +85,7 @@ const Home: NextPage = () => {
     <div className={styles.container}>
       <main className="container-fluid">
         <h3>
-          Let's scan the web
+          Let&apos;s scan the web
           <small className="text-muted"> please enter a hostname...</small>
         </h3>
         <ScannerOptionsForm
