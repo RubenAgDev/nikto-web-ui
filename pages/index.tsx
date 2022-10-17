@@ -1,10 +1,11 @@
 import type { NextPage } from 'next';
 import Head from 'next/head';
-import { useState } from 'react';
+import Script from 'next/script';
+import { useState } from "react";
 
 import styles from '../styles/Home.module.css';
 
-import { ScanEvent, ScannerStatus } from '../models';
+import { ScanEvent, ScannerStatus } from "../models";
 
 import ScannerOptionsForm from '../components/ScannerOptionsForm';
 import ScannerOutput from '../components/ScannerOutput';
@@ -13,7 +14,7 @@ const Home: NextPage = () => {
   let evtSource: any = null;
   let initialEvents: Array<ScanEvent> = [];
 
-  const [hostname, setHostname] = useState('');
+  const [hostname, setHostname] = useState("");
   const [scannerStatus, setScannerStatus] = useState(ScannerStatus.Stopped);
   const [scanEvents, setScanEvents] = useState(initialEvents);
 
@@ -34,7 +35,7 @@ const Home: NextPage = () => {
   function handleScanClick() {
     if (scannerStatus == ScannerStatus.Running) {
       closeConnection();
-      appendOutput({textContent: 'Scanning has stopped!', cssClass: 'text-bg-warning'});
+      appendOutput({textContent: "Scanning has stopped!", cssClass: "text-bg-warning"});
     } else {
       setScannerStatus(ScannerStatus.Running);
       setScanEvents(initialEvents);
@@ -47,16 +48,16 @@ const Home: NextPage = () => {
         switch(type) {
           case 'done':
             closeConnection();
-            appendOutput({textContent: event, cssClass: 'text-bg-success'});
+            appendOutput({textContent: event, cssClass: "text-bg-success"});
             break;
           case 'error':
             closeConnection();
-            appendOutput({textContent: event, cssClass: 'text-bg-warning'});
+            appendOutput({textContent: event, cssClass: "text-bg-warning"});
             break;
           default:
             // Handles the 'feed' events, sometimes more than one log is sent:
-            event.split('+').forEach((item: string) => {
-              appendOutput({textContent: item, cssClass: 'text-bg-light'});
+            event.split("+").forEach((item: string) => {
+              appendOutput({textContent: item, cssClass: "text-bg-light"});
             });
         }
       }
@@ -64,9 +65,9 @@ const Home: NextPage = () => {
       evtSource.onerror = () => {
         if (reconnectAttempts > 3) {
           closeConnection();
-          appendOutput({textContent: 'Could not connect to the server!', cssClass: 'bg-danger text-white'});
+          appendOutput({textContent: "Could not connect to the server!", cssClass: "bg-danger text-white"});
         } else {
-          appendOutput({textContent: `Connection refused (attempt: ${reconnectAttempts})...`, cssClass: 'bg-danger text-white'});
+          appendOutput({textContent: `Connection refused (attempt: ${reconnectAttempts})...`, cssClass: "bg-danger text-white"});
           reconnectAttempts++;
         }
       }
@@ -76,15 +77,16 @@ const Home: NextPage = () => {
   return <>
     <Head>
       <title>Web Server Scanner</title>
-      <meta name='description' content='Web UI with Next.js' />
-      <meta name='viewport' content='width=device-width, initial-scale=1'></meta>
-      <link rel='icon' href='/favicon.ico' />
+      <meta name="description" content="Web UI with Next.js" />
+      <meta name="viewport" content="width=device-width, initial-scale=1"></meta>
+      <link rel="icon" href="/favicon.ico" />
+      <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-iYQeCzEYFbKjA/T2uDLTpkwGzCiq6soy8tYaI1GyVh/UjpbCx/TYkiZhlZB6+fzT" crossOrigin="anonymous" />
     </Head>
     <div className={styles.container}>
-      <main className='container-fluid'>
+      <main className="container-fluid">
         <h3>
           Let&apos;s scan the web
-          <small className='text-muted'> please enter a hostname...</small>
+          <small className="text-muted"> please enter a hostname...</small>
         </h3>
         <ScannerOptionsForm
           scannerStatus={scannerStatus}
@@ -94,14 +96,17 @@ const Home: NextPage = () => {
       </main>
       <footer className={styles.footer}>
         <a
-          href='https://github.com/sullo/nikto'
-          target='_blank'
-          rel='noopener noreferrer'
+          href="https://github.com/sullo/nikto"
+          target="_blank"
+          rel="noopener noreferrer"
         >
           Powered by Nikto
         </a>
       </footer>
     </div>
+    <Script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/js/bootstrap.min.js"
+      integrity="sha384-7VPbUDkoPSGFnVtYi0QogXtr74QeVeeIs99Qfg5YCF+TidwNdjvaKZX19NZ/e6oz"
+      crossOrigin="anonymous" />
   </>
 }
 
