@@ -1,7 +1,6 @@
 const next = require('next');
 const { parse } = require('url');
 
-const path = require('path');
 const express = require('express');
 const spawn = require('child_process').spawn;
 
@@ -16,7 +15,6 @@ const handle = app.getRequestHandler();
     try {
         await app.prepare();
         const server = express();
-        server.use('/', express.static(path.join(__dirname, 'public')));
         server.get('/api/scan', (req, res) => {
             let niktoP = null;
             const hostToScan = req.query.host;
