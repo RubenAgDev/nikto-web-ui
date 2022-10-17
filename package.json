@@ -1,18 +1,28 @@
 {
   "name": "nikto-web-ui",
-  "version": "1.0.0",
-  "description": "",
-  "main": "src/server.js",
+  "version": "2.0.0",
+  "private": true,
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start:dev": "nodemon src/index.js"
+    "dev": "nodemon -w server server/index.js",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
   },
   "author": "Ruben Aguilar",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.18.1"
+    "express": "^4.18.2",
+    "next": "12.3.1",
+    "react": "18.2.0",
+    "react-dom": "18.2.0"
   },
   "devDependencies": {
-    "nodemon": "^2.0.20"
+    "@types/node": "18.11.0",
+    "@types/react": "18.0.21",
+    "@types/react-dom": "18.0.6",
+    "eslint": "8.25.0",
+    "eslint-config-next": "12.3.1",
+    "nodemon": "^2.0.20",
+    "typescript": "4.8.4"
   }
 }

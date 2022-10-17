@@ -26,8 +26,10 @@ USER nikto
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci
-CMD [ "node", "src/index.js" ]
+CMD [ "node", "server/index.js" ]
 EXPOSE $PORT
 
 FROM builder
-COPY ./src/ ./src/
+RUN npm run build
+# TODO: Complete the Production build
+# COPY ./.next/ ./
