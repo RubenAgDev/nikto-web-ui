@@ -3,16 +3,16 @@ import { ScannerStatus } from '../models';
 
 interface ScannerOptionsFormProps {
   scannerStatus: ScannerStatus,
-  onChangeHostname: ChangeEventHandler,
+  onChangeOption: ChangeEventHandler,
   onScanClick: MouseEventHandler,
 }
 
-const ScannerOptionsForm = ({scannerStatus, onChangeHostname, onScanClick}: ScannerOptionsFormProps) => {
+const ScannerOptionsForm = ({scannerStatus, onChangeOption, onScanClick}: ScannerOptionsFormProps) => {
   return (
     <div className='row align-items-center'>
       <div className='col'>
         <label htmlFor='host-input' className='visually-hidden'>Enter the hostname to scan:</label>
-        <input type='text' className='form-control' id='host-input' placeholder='https://example.com' onChange={onChangeHostname} />
+        <input type='text' className='form-control' name='host' placeholder='https://example.com' onChange={onChangeOption} />
       </div>
       <div className='col p-3'>
         <button type='button' className='btn btn-primary' id='scan-button' onClick={onScanClick}>

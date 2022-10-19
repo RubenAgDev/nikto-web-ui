@@ -13,25 +13,28 @@ const Home: NextPage = () => {
   let evtSource: any = null;
   let initialEvents: Array<ScanEvent> = [];
 
-  const [hostname, setHostname] = useState('');
+  const [scanOptions, setScanOptions] = useState({});
   const [scannerStatus, setScannerStatus] = useState(ScannerStatus.Stopped);
   const [scanEvents, setScanEvents] = useState(initialEvents);
 
-  function appendOutput(scanEvent: ScanEvent) {
+  const appendOutput = (scanEvent: ScanEvent) => {
     // eventList.scrollTop = eventList.scrollHeight;
+
     setScanEvents(current => [...current, scanEvent]);
   }
 
-  function closeConnection() {
+  const closeConnection = () => {
     if (evtSource) evtSource.close();
     setScannerStatus(ScannerStatus.Stopped);
   }
 
-  function handleInputChange(event: any) {
-    setHostname(event.target.value);
+  const handleOptionChange = (event: any) => {
+    const name = event.target.name;
+    const value = event.target.value;
+    setScanOptions(current => ({...current, [name]: value}));
   }
 
-  function handleScanClick() {
+  const handleScanClick = () => {
     if (scannerStatus == ScannerStatus.Running) {
       closeConnection();
       appendOutput({textContent: 'Scanning has stopped!', cssClass: 'text-bg-warning'});
@@ -40,8 +43,9 @@ const Home: NextPage = () => {
       setScanEvents(initialEvents);
       
       let reconnectAttempts = 1;
-      // https://developer.mozilla.org/en-US/docs/Web/API/EventSource
-      evtSource = new EventSource(`/api/scan?host=${hostname}`);
+      const scanOptionsParams = new URLSearchParams(scanOptions);
+      const apiUrl = `/api/scan?${scanOptionsParams.toString()}`
+      evtSource = new EventSource(apiUrl);
       evtSource.onmessage = (message: any) => {
         const { type, event } = JSON.parse(message.data);
         switch(type) {
@@ -88,7 +92,7 @@ const Home: NextPage = () => {
         </h3>
         <ScannerOptionsForm
           scannerStatus={scannerStatus}
-          onChangeHostname={handleInputChange}
+          onChangeOption={handleOptionChange}
           onScanClick={handleScanClick} />
         <ScannerOutput scannerStatus={scannerStatus} events={scanEvents} />
       </main>
