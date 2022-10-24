@@ -1,9 +1,13 @@
-export interface ScanEvent {
-  textContent: string,
-  cssClass: string,
+export enum ScanEventType {
+  SUCCESS = 'success',
+  WARNING = 'warning',
+  ERROR = 'error',
+  INFO = 'light',
+  DANGER = 'danger',
 }
 
-export enum ScannerStatus {
-  Stopped,
-  Running,
+export interface ScanEvent {
+  content: string,
+  type: ScanEventType,
+  output?: string,
 }

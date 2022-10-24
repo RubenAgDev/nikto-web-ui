@@ -1,10 +1,10 @@
 import type { NextPage } from 'next';
 import Head from 'next/head';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 
 import styles from '../styles/Home.module.css';
 
-import { ScanEvent, ScannerStatus } from '../models';
+import { ScanEvent, ScanEventType } from '../models';
 
 import ScannerOptionsForm from '../components/ScannerOptionsForm';
 import ScannerOutput from '../components/ScannerOutput';
@@ -12,55 +12,64 @@ import ScannerOutput from '../components/ScannerOutput';
 const Home: NextPage = () => {
   let evtSource: any = null;
   let initialEvents: Array<ScanEvent> = [];
-
+  const outputPanelRef: any = useRef();
   const [scanOptions, setScanOptions] = useState({});
-  const [scannerStatus, setScannerStatus] = useState(ScannerStatus.Stopped);
+  const [isScanning, setIsScanning] = useState(false);
   const [scanEvents, setScanEvents] = useState(initialEvents);
 
-  const appendOutput = (scanEvent: ScanEvent) => {
-    // eventList.scrollTop = eventList.scrollHeight;
+  const appendToEventList = (scanEvent: ScanEvent) => {
+    if (scanEvent.content) {
+      setScanEvents(current => [...current, scanEvent]);
+      outputPanelRef.current.scrollTop = outputPanelRef.current.scrollHeight;
+    }
+  }
 
-    setScanEvents(current => [...current, scanEvent]);
+  const processOutput = (output: string) => {
+    console.log(output);
   }
 
   const closeConnection = () => {
     if (evtSource) evtSource.close();
-    setScannerStatus(ScannerStatus.Stopped);
+    setIsScanning(false);
   }
 
   const handleOptionChange = (event: any) => {
     const name = event.target.name;
-    const value = event.target.value;
+    let value = event.target.value;
+    if (event.target.type === 'select-multiple') {
+      value = Array.from(event.target.selectedOptions, (option: any) => option.value);
+    }
     setScanOptions(current => ({...current, [name]: value}));
   }
 
   const handleScanClick = () => {
-    if (scannerStatus == ScannerStatus.Running) {
+    if (isScanning) {
       closeConnection();
-      appendOutput({textContent: 'Scanning has stopped!', cssClass: 'text-bg-warning'});
+      appendToEventList({content: 'Scanning has stopped.', type: ScanEventType.WARNING});
     } else {
-      setScannerStatus(ScannerStatus.Running);
+      setIsScanning(true);
       setScanEvents(initialEvents);
       
       let reconnectAttempts = 1;
       const scanOptionsParams = new URLSearchParams(scanOptions);
-      const apiUrl = `/api/scan?${scanOptionsParams.toString()}`
+      const apiUrl = `/api/scan?${scanOptionsParams.toString()}`;
       evtSource = new EventSource(apiUrl);
       evtSource.onmessage = (message: any) => {
-        const { type, event } = JSON.parse(message.data);
+        const { type, content, output } = JSON.parse(message.data);
         switch(type) {
           case 'done':
             closeConnection();
-            appendOutput({textContent: event, cssClass: 'text-bg-success'});
+            appendToEventList({content, type: ScanEventType.SUCCESS});
+            processOutput(output);
             break;
           case 'error':
             closeConnection();
-            appendOutput({textContent: event, cssClass: 'text-bg-warning'});
+            appendToEventList({content, type: ScanEventType.WARNING});
             break;
           default:
             // Handles the 'feed' events, sometimes more than one log is sent:
-            event.split('+').forEach((item: string) => {
-              appendOutput({textContent: item, cssClass: 'text-bg-light'});
+            content.split('+').forEach((item: string) => {
+              appendToEventList({content: item, type: ScanEventType.INFO});
             });
         }
       }
@@ -68,9 +77,9 @@ const Home: NextPage = () => {
       evtSource.onerror = () => {
         if (reconnectAttempts > 3) {
           closeConnection();
-          appendOutput({textContent: 'Could not connect to the server!', cssClass: 'bg-danger text-white'});
+          appendToEventList({content: 'Could not connect to the server.', type: ScanEventType.DANGER});
         } else {
-          appendOutput({textContent: `Connection refused (attempt: ${reconnectAttempts})...`, cssClass: 'bg-danger text-white'});
+          appendToEventList({content: `Connection refused (attempt: ${reconnectAttempts})...`, type: ScanEventType.DANGER});
           reconnectAttempts++;
         }
       }
@@ -91,10 +100,10 @@ const Home: NextPage = () => {
           <small className='text-muted'> please enter a hostname...</small>
         </h3>
         <ScannerOptionsForm
-          scannerStatus={scannerStatus}
+          isScanning={isScanning}
           onChangeOption={handleOptionChange}
           onScanClick={handleScanClick} />
-        <ScannerOutput scannerStatus={scannerStatus} events={scanEvents} />
+        <ScannerOutput isScanning={isScanning} events={scanEvents} outputPanelRef={outputPanelRef} />
       </main>
       <footer className={styles.footer}>
         <a
