@@ -15,3 +15,5 @@ Then just visit:
 ```
 http://localhost:3000/
 ```
+
+Note: User inputs are not validated, DO NOT host this in a public web server.
