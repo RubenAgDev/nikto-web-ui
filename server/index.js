@@ -59,6 +59,7 @@ const Event = (type, content, output = null) => {
           res.write(Event('error', 'A valid hostname is required'));
         }, 1000);
       } else {
+        console.log(`New web client has connected: ${newClientId}`);
         connectedClients.push(newClientId);
         // Spawns Nikto as a child process
         niktoP = spawn('nikto.pl', options);
@@ -70,8 +71,8 @@ const Event = (type, content, output = null) => {
         });
 
         niktoP.on('close', (code) => {
+          console.log(`Nikto process exited with code: ${code}`);
           setTimeout(() => {
-            console.log(`Nikto process exited with code: ${code}`);
             if (code === 1) {
               fs.readFile(outputFilename, (err, data) => {
                 if (err) {
