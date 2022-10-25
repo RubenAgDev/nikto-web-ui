@@ -9,8 +9,9 @@ import { ScanEvent, ScanEventType } from '../models';
 import ScannerOptionsForm from '../components/ScannerOptionsForm';
 import ScannerOutput from '../components/ScannerOutput';
 
+let evtSource: any = null;
+
 const Home: NextPage = () => {
-  let evtSource: any = null;
   let initialEvents: Array<ScanEvent> = [];
   const outputPanelRef: any = useRef();
   const [scanOptions, setScanOptions] = useState({});
@@ -20,7 +21,8 @@ const Home: NextPage = () => {
   const appendToEventList = (scanEvent: ScanEvent) => {
     if (scanEvent.content) {
       setScanEvents(current => [...current, scanEvent]);
-      outputPanelRef.current.scrollTop = outputPanelRef.current.scrollHeight;
+      if(outputPanelRef.current)
+        outputPanelRef.current.scrollTop = outputPanelRef.current.scrollHeight;
     }
   }
 

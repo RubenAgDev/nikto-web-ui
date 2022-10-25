@@ -41,7 +41,7 @@ const Event = (type, content, output = null) => {
       });
 
       req.on('close', () => {
-        console.log('Web client connection closed.');
+        console.log(`Web client: ${newClientId} connection closed.`);
         // Removes client and its output file
         connectedClients = connectedClients.filter(client => client !== newClientId);
         fs.unlink(outputFilename, (unlinkErr) => {
