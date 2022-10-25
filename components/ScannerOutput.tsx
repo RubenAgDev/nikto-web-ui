@@ -1,20 +1,33 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ScanEvent } from '../models';
 
-interface ScannerOutputProps {
-  isScanning: boolean,
-  events: Array<ScanEvent>,
-  outputPanelRef: any,
+type ScannerOutputProps = {
+  isScanning: boolean;
+  events: Array<ScanEvent>;
+  outputPanelRef: any;
+  reportContent?: string;
 }
 
-const ScannerOutput = ({events, isScanning, outputPanelRef}: ScannerOutputProps) => {
+const ScannerOutput = ({events, isScanning, outputPanelRef, reportContent}: ScannerOutputProps) => {
   const [showOutputPanel, setShowOutputPanel] = useState(true);
+  const [downloadUrl, setDownloadUrl] = useState('');
+
+  useEffect(() => {
+    if (reportContent) {
+      const file = new Blob([reportContent], {type: 'application/json'});
+      setDownloadUrl(URL.createObjectURL(file));
+    }
+  }, [reportContent]);
 
   const toggleOutputPanel = () => {
     setShowOutputPanel(current => !current);
   }
 
   return <>
+    <div style={{textAlign: 'right'}}>
+      <a className='btn btn-link' onClick={toggleOutputPanel}>{ showOutputPanel ? "Hide Panel" : "Show Panel" }</a>
+      <a className={`btn btn-link ${!downloadUrl && 'disabled'}`} href={downloadUrl} download>Download Report</a>
+    </div>
     { showOutputPanel && <div className='card' id='output-panel' ref={outputPanelRef} style={{height: '600px', overflowY: 'scroll'}}>
       <div className='card-body'>
         <div className='card-text'>
@@ -33,11 +46,6 @@ const ScannerOutput = ({events, isScanning, outputPanelRef}: ScannerOutputProps)
         </div>
       </div>
     </div> }
-    <div style={{textAlign: 'right'}}>
-      <span className='btn btn-link' role='button' onClick={toggleOutputPanel}>
-        { showOutputPanel ? "hide output panel" : "show output panel" }
-      </span>
-    </div>
   </>
 };
 

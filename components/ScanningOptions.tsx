@@ -1,12 +1,12 @@
 import type { ChangeEventHandler, MouseEventHandler } from 'react';
 
-interface ScannerOptionsFormProps {
-  isScanning: boolean,
-  onChangeOption: ChangeEventHandler,
-  onScanClick: MouseEventHandler,
+type ScanningOptionsProps = {
+  isScanning: boolean;
+  onChangeOption: ChangeEventHandler;
+  onScanClick: MouseEventHandler;
 }
 
-const ScannerOptionsForm = ({isScanning, onChangeOption, onScanClick}: ScannerOptionsFormProps) => {
+const ScanningOptions = ({isScanning, onChangeOption, onScanClick}: ScanningOptionsProps) => {
   return <>
     <div className='mb-3'>
       <label htmlFor='host-input' className='visually-hidden'>Enter the hostname to scan:</label>
@@ -60,4 +60,4 @@ const ScannerOptionsForm = ({isScanning, onChangeOption, onScanClick}: ScannerOp
   </>;
 };
 
-export default ScannerOptionsForm;
+export default ScanningOptions;

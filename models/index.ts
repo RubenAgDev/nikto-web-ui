@@ -9,5 +9,4 @@ export enum ScanEventType {
 export interface ScanEvent {
   content: string,
   type: ScanEventType,
-  output?: string,
 }

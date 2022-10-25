@@ -6,28 +6,24 @@ import styles from '../styles/Home.module.css';
 
 import { ScanEvent, ScanEventType } from '../models';
 
-import ScannerOptionsForm from '../components/ScannerOptionsForm';
+import ScanningOptions from '../components/ScanningOptions';
 import ScannerOutput from '../components/ScannerOutput';
 
 let evtSource: any = null;
 
 const Home: NextPage = () => {
-  let initialEvents: Array<ScanEvent> = [];
   const outputPanelRef: any = useRef();
   const [scanOptions, setScanOptions] = useState({});
   const [isScanning, setIsScanning] = useState(false);
-  const [scanEvents, setScanEvents] = useState(initialEvents);
+  const [events, setEvents] = useState<Array<ScanEvent>>([]);
+  const [reportContent, setReportContent] = useState('');
 
   const appendToEventList = (scanEvent: ScanEvent) => {
     if (scanEvent.content) {
-      setScanEvents(current => [...current, scanEvent]);
+      setEvents(current => [...current, scanEvent]);
       if(outputPanelRef.current)
         outputPanelRef.current.scrollTop = outputPanelRef.current.scrollHeight;
     }
-  }
-
-  const processOutput = (output: string) => {
-    console.log(output);
   }
 
   const closeConnection = () => {
@@ -48,10 +44,11 @@ const Home: NextPage = () => {
     if (isScanning) {
       closeConnection();
       appendToEventList({content: 'Scanning has stopped.', type: ScanEventType.WARNING});
+      setReportContent('');
     } else {
       setIsScanning(true);
-      setScanEvents(initialEvents);
-      
+      setEvents([]);
+      setReportContent('');
       let reconnectAttempts = 1;
       const scanOptionsParams = new URLSearchParams(scanOptions);
       const apiUrl = `/api/scan?${scanOptionsParams.toString()}`;
@@ -62,7 +59,7 @@ const Home: NextPage = () => {
           case 'done':
             closeConnection();
             appendToEventList({content, type: ScanEventType.SUCCESS});
-            processOutput(output);
+            setReportContent(output);
             break;
           case 'error':
             closeConnection();
@@ -101,11 +98,15 @@ const Home: NextPage = () => {
           Let&apos;s scan the web
           <small className='text-muted'> please enter a hostname...</small>
         </h3>
-        <ScannerOptionsForm
+        <ScanningOptions
           isScanning={isScanning}
           onChangeOption={handleOptionChange}
           onScanClick={handleScanClick} />
-        <ScannerOutput isScanning={isScanning} events={scanEvents} outputPanelRef={outputPanelRef} />
+        <ScannerOutput
+          isScanning={isScanning}
+          events={events}
+          outputPanelRef={outputPanelRef}
+          reportContent={reportContent} />
       </main>
       <footer className={styles.footer}>
         <a
